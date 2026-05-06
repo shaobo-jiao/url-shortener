@@ -9,14 +9,25 @@ public static class ShortUrlEndpoints
     {
         var shortUrlApi = app.MapGroup("/api/short-url");
         shortUrlApi.MapPost("/", CreateShortUrlAsync);
-        shortUrlApi.MapGet("/{code:string}", GetOriginalUrlAsync).WithName("GetOriginalUrl");
+        shortUrlApi.MapGet("/{code}", GetOriginalUrlAsync).WithName("GetOriginalUrl");
 
-        app.MapGet("/{code:string}", RedirectToOriginalUrl);
+        app.MapGet("/{code}", RedirectToOriginalUrl);
     }
 
-    public static async Task<Results<CreatedAtRoute<ShorturlResponse>, BadRequest>> CreateShortUrlAsync(ShortUrlService service, CreateShortUrlRequest request)
+    public static async Task<Results<Ok<ShortUrlResponse>, CreatedAtRoute<ShortUrlResponse>, BadRequest>> CreateShortUrlAsync(HttpRequest httpRequest,
+        ShortUrlService shortUrlSvc, CreateShortUrlRequest request)
     {
-        throw new NotImplementedException();
+        var shortUrlEntity = await shortUrlSvc.CreateShortUrl(request);
+        var shortUrl = new UriBuilder()
+        {
+            Scheme = httpRequest.Scheme,
+            Host = httpRequest.Host.Host,
+            Port = httpRequest.Host.Port ?? (httpRequest.Scheme == "https" ? 443 : 80),
+            Path = shortUrlEntity.Code
+        }.Uri.ToString();
+        var response = new ShortUrlResponse(shortUrlEntity.Id, shortUrl, shortUrlEntity.OriginalUrl);
+        // return TypedResults.CreatedAtRoute(response, "GetOriginalUrl", shortUrlEntity.Code);
+        return TypedResults.Ok(response);
     }
 
     public static async Task GetOriginalUrlAsync(ShortUrlService service, [FromRoute] string code)
@@ -24,8 +35,11 @@ public static class ShortUrlEndpoints
         throw new NotImplementedException();
     }
 
-    public static async Task<RedirectHttpResult> RedirectToOriginalUrl(ShortUrlService service, [FromRoute] string code)
+    public static async Task<Results<RedirectHttpResult, NotFound>> RedirectToOriginalUrl(ShortUrlService service, [FromRoute] string code)
     {
-        throw new NotImplementedException(); // later use TypedResults.Redirect to redirect
+        // var shortUrl = await service.GetShortUrlByCodeAsync(code);
+        // if (shortUrl is null) return TypedResults.NotFound();
+        // return TypedResults.Redirect(shortUrl.OriginalUrl, permanent: false);
+        throw new NotImplementedException();
     }
 }

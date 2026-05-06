@@ -1,6 +1,3 @@
 ﻿namespace UrlShortener.Api;
 
-public class CreateShortUrlRequest
-{
-
-}
+public record CreateShortUrlRequest(string OriginalUrl);
