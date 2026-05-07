@@ -39,26 +39,26 @@ public class Base62EncodingTests
     }
 
     [Fact]
-    public void Decode_EmptyInput_ThrowsArgumentOutOfRangeException()
+    public void Decode_EmptyInput_ThrowsFormatException()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => Base62Encoding.Decode(string.Empty));
+        Assert.Throws<FormatException>(() => Base62Encoding.Decode(string.Empty));
     }
 
     [Fact]
-    public void Decode_TooLongInput_ThrowsArgumentOutOfRangeException()
+    public void Decode_TooLongInput_ThrowsFormatException()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => Base62Encoding.Decode("0123456789AB"));
+        Assert.Throws<FormatException>(() => Base62Encoding.Decode("0123456789AB"));
     }
 
     [Fact]
-    public void Decode_InputContainsInvalidChars_ThrowsInvalidOperationException()
+    public void Decode_InputContainsInvalidChars_ThrowsFormatException()
     {
-        Assert.Throws<InvalidOperationException>(() => Base62Encoding.Decode("0*0"));
+        Assert.Throws<FormatException>(() => Base62Encoding.Decode("0*0"));
     }
 
     [Fact]
-    public void Decode_InputExceedingMaxValue_ThrowsArgumentOutOfRangeException()
+    public void Decode_InputExceedingMaxValue_ThrowsOverflowException()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => Base62Encoding.Decode("AzL8n0Y58m8"));
+        Assert.Throws<OverflowException>(() => Base62Encoding.Decode("AzL8n0Y58m8"));
     }
 }

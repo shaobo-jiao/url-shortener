@@ -31,20 +31,34 @@ public static class Base62Encoding
     public static long Decode(string text)
     {
         if (string.IsNullOrEmpty(text) || text.Length > 11) // quick check on obvious invalid input 
-            throw new ArgumentOutOfRangeException(nameof(text), text);
+            throw new FormatException("Invalid input for Base62 decoding");
 
         long val = 0;
         for (int i = 0; i < text.Length; i++)
         {
             int cv = Charset.IndexOf(text[i]);
-            if (cv == -1) throw new InvalidOperationException("Invalid character in Base62 Encoding");
+            if (cv == -1) throw new FormatException("Invalid character in Base62 Encoding");
 
             // check overflow, whether val*62 + cv > long.MaxValue <==> whether val > (long.MaxValue - cv) / 62
             if (val > (long.MaxValue - cv) / 62)
-                throw new ArgumentOutOfRangeException(nameof(text), text);
+                throw new OverflowException();
 
             val = val * 62 + cv;
         }
         return val;
+    }
+
+    public static bool TryDecode(string text, out long val)
+    {
+        try
+        {
+            val = Decode(text);
+            return true;
+        }
+        catch
+        {
+            val = -1;
+            return false;
+        }
     }
 }
