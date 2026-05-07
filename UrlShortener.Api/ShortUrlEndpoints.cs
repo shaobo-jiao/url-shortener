@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace UrlShortener.Api;
@@ -7,39 +8,52 @@ public static class ShortUrlEndpoints
 {
     public static void MapShortUrlEndpoints(this IEndpointRouteBuilder app)
     {
-        var shortUrlApi = app.MapGroup("/api/short-url");
+        var shortUrlApi = app.MapGroup("/api/short-urls");
         shortUrlApi.MapPost("/", CreateShortUrlAsync);
         shortUrlApi.MapGet("/{code}", GetOriginalUrlAsync).WithName("GetOriginalUrl");
 
-        app.MapGet("/{code}", RedirectToOriginalUrl);
+        app.MapGet("/{code}", RedirectToOriginalUrl).ExcludeFromDescription(); // exclude from Swagger
     }
 
-    public static async Task<Results<Ok<ShortUrlResponse>, CreatedAtRoute<ShortUrlResponse>, BadRequest>> CreateShortUrlAsync(HttpRequest httpRequest,
+    public static async Task<Results<CreatedAtRoute<ShortUrlResponse>, BadRequest>> CreateShortUrlAsync(HttpRequest httpRequest,
         ShortUrlService shortUrlSvc, CreateShortUrlRequest request)
     {
-        var shortUrlEntity = await shortUrlSvc.CreateShortUrl(request);
-        var shortUrl = new UriBuilder()
+        var shortUrl = await shortUrlSvc.CreateShortUrl(request);
+        var response = shortUrl.ToResponse(httpRequest);
+        return TypedResults.CreatedAtRoute(response, "GetOriginalUrl", new { code = shortUrl.Code });
+    }
+
+    public static async Task<Results<Ok<ShortUrlResponse>, NotFound, BadRequest>> GetOriginalUrlAsync(HttpRequest httpRequest, ShortUrlService shortUrlSvc, [FromRoute] string code)
+    {
+        try
         {
-            Scheme = httpRequest.Scheme,
-            Host = httpRequest.Host.Host,
-            Port = httpRequest.Host.Port ?? (httpRequest.Scheme == "https" ? 443 : 80),
-            Path = shortUrlEntity.Code
-        }.Uri.ToString();
-        var response = new ShortUrlResponse(shortUrlEntity.Id, shortUrl, shortUrlEntity.OriginalUrl);
-        // return TypedResults.CreatedAtRoute(response, "GetOriginalUrl", shortUrlEntity.Code);
-        return TypedResults.Ok(response);
+            var shortUrl = await shortUrlSvc.GetShortUrlByCodeAsync(code);
+            return TypedResults.Ok(shortUrl.ToResponse(httpRequest));
+        }
+        catch (ShortUrlNotFoundException)
+        {
+            return TypedResults.NotFound(); // add code and msg later; to check how to handle exceptions properly
+        }
+        catch (ShortUrlBaseException)
+        {
+            return TypedResults.BadRequest(); // todo: add code and msg later
+        }
     }
 
-    public static async Task GetOriginalUrlAsync(ShortUrlService service, [FromRoute] string code)
+    public static async Task<Results<RedirectHttpResult, NotFound, BadRequest>> RedirectToOriginalUrl(ShortUrlService service, [FromRoute] string code)
     {
-        throw new NotImplementedException();
-    }
-
-    public static async Task<Results<RedirectHttpResult, NotFound>> RedirectToOriginalUrl(ShortUrlService service, [FromRoute] string code)
-    {
-        // var shortUrl = await service.GetShortUrlByCodeAsync(code);
-        // if (shortUrl is null) return TypedResults.NotFound();
-        // return TypedResults.Redirect(shortUrl.OriginalUrl, permanent: false);
-        throw new NotImplementedException();
+        try
+        {
+            var shortUrl = await service.GetShortUrlByCodeAsync(code);
+            return TypedResults.Redirect(shortUrl.OriginalUrl, permanent: false);
+        }
+        catch (ShortUrlNotFoundException)
+        {
+            return TypedResults.NotFound(); // add code and msg later
+        }
+        catch (ShortUrlBaseException)
+        {
+            return TypedResults.BadRequest(); // todo: add code and msg later
+        }
     }
 }

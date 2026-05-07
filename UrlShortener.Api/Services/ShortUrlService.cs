@@ -17,11 +17,13 @@ public class ShortUrlService(AppDbContext dbContext)
         return shortUrl;
     }
 
-    public async Task<ShortUrl?> GetShortUrlByCodeAsync(string code)
+    public async Task<ShortUrl> GetShortUrlByCodeAsync(string code)
     {
-        // var id = Base62Encoding.Decode(code);
-        // var shortUrl = await _dbContext.ShortUrls.FindAsync(id);
-        // return shortUrl;
-        throw new NotImplementedException();
+        if (!Base62Encoding.TryDecode(code, out long id))
+            throw new ShortUrlInvalidCodeException();
+
+        var shortUrl = await _dbContext.ShortUrls.FindAsync(id) ?? throw new ShortUrlNotFoundException();
+        if (shortUrl.ExpiresAt < DateTime.UtcNow) throw new ShortUrlExpiredException();
+        return shortUrl;
     }
 }
