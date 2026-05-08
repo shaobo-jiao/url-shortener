@@ -14,8 +14,13 @@ access via short url
 - input: short url with code
 - flow: load from db, if exists and hasn't expire, redirect
 
-next step:
+
+--- 
+next phase:
 - stats: click count (another table, e.g. Click obj);
 - put stats in background service: GET => find orig url => redirect => meanwhile, ask bg service to save click stats (ClickEvent => Click obj)
+
+
+future:
 - validation?
 - caching, rate limiting
