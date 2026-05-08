@@ -41,7 +41,7 @@ public static class Base62Encoding
 
             // check overflow, whether val*62 + cv > long.MaxValue <==> whether val > (long.MaxValue - cv) / 62
             if (val > (long.MaxValue - cv) / 62)
-                throw new OverflowException();
+                throw new OverflowException("code exceeding maximum value of long integer");
 
             val = val * 62 + cv;
         }
