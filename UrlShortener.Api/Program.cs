@@ -15,9 +15,10 @@ builder.Services.AddOpenApiDocument(config =>
     config.Title = "UrlShortener.API v1";
     config.Version = "v1";
 });
-
+// Short URL related services
 builder.Services.AddScoped<ShortUrlService>();
-builder.Services.AddScoped<ShortUrlClickService>();
+builder.Services.AddSingleton<ShortUrlClickEventQueue>();
+builder.Services.AddHostedService<ShortUrlClickBackgroundService>();
 
 var app = builder.Build();
 // swagger

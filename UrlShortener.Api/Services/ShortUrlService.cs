@@ -26,4 +26,21 @@ public class ShortUrlService(AppDbContext dbContext)
         if (shortUrl.ExpiresAt < DateTime.UtcNow) throw new ShortUrlExpiredException();
         return shortUrl;
     }
+
+    /// <summary>
+    /// Saves a Short URL click event into database.
+    /// </summary>
+    /// <param name="clickEvent"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task SaveClickEventAsync(ShortUrlClickEvent clickEvent, CancellationToken cancellationToken)
+    {
+        var click = new ShortUrlClick()
+        {
+            ShortUrlId = clickEvent.ShortUrlId,
+            ClickedAt = clickEvent.ClickedAt
+        };
+        await _dbContext.ShortUrlClicks.AddAsync(click, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
 }

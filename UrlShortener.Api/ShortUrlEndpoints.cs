@@ -20,6 +20,13 @@ public static class ShortUrlEndpoints
             .ExcludeFromDescription(); // exclude from Swagger
     }
 
+    /// <summary>
+    /// Creates a new Short URL that maps to the given original URL.
+    /// </summary>
+    /// <param name="httpRequest"></param>
+    /// <param name="shortUrlSvc"></param>
+    /// <param name="request"></param>
+    /// <returns></returns>
     public static async Task<Results<CreatedAtRoute<ShortUrlResponse>, BadRequest>> CreateShortUrlAsync(
         HttpRequest httpRequest, ShortUrlService shortUrlSvc, CreateShortUrlRequest request)
     {
@@ -28,6 +35,13 @@ public static class ShortUrlEndpoints
         return TypedResults.CreatedAtRoute(response, "GetOriginalUrl", new { code = shortUrl.Code });
     }
 
+    /// <summary>
+    /// Gets original URL mapping information for the given short URL
+    /// </summary>
+    /// <param name="httpRequest"></param>
+    /// <param name="shortUrlSvc"></param>
+    /// <param name="code"></param>
+    /// <returns></returns>
     public static async Task<Results<Ok<ShortUrlResponse>, ProblemHttpResult>> GetOriginalUrlAsync(
         HttpRequest httpRequest, ShortUrlService shortUrlSvc, [FromRoute] string code)
     {
@@ -42,13 +56,19 @@ public static class ShortUrlEndpoints
         }
     }
 
+    /// <summary>
+    /// Redirects to the original URL mapped by the given short URL, and logs the click event of the found URL entity.
+    /// </summary>
     public static async Task<Results<RedirectHttpResult, ProblemHttpResult>> RedirectToOriginalUrl(
-        HttpRequest httpRequest, ShortUrlService shortUrlSvc, ShortUrlClickService clickSvc, [FromRoute] string code)
+        HttpRequest httpRequest, ShortUrlService shortUrlSvc, ShortUrlClickEventQueue _clickEventQueue, [FromRoute] string code, 
+        CancellationToken cancellationToken)
     {
         try
         {
             var shortUrl = await shortUrlSvc.GetShortUrlByCodeAsync(code);
-            await clickSvc.CreateShortUrlClickAsync(shortUrl, DateTimeOffset.UtcNow);
+            var clickEvent = new ShortUrlClickEvent(shortUrl.Id, shortUrl.Code, DateTimeOffset.UtcNow);
+            await _clickEventQueue.EnqueueAsync(clickEvent, cancellationToken);
+
             return TypedResults.Redirect(shortUrl.OriginalUrl, permanent: false);
         }
         catch (ShortUrlBaseException ex)
