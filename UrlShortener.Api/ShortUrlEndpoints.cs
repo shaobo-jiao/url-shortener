@@ -43,11 +43,12 @@ public static class ShortUrlEndpoints
     }
 
     public static async Task<Results<RedirectHttpResult, ProblemHttpResult>> RedirectToOriginalUrl(
-        ShortUrlService service, [FromRoute] string code)
+        HttpRequest httpRequest, ShortUrlService shortUrlSvc, ShortUrlClickService clickSvc, [FromRoute] string code)
     {
         try
         {
-            var shortUrl = await service.GetShortUrlByCodeAsync(code);
+            var shortUrl = await shortUrlSvc.GetShortUrlByCodeAsync(code);
+            await clickSvc.CreateShortUrlClickAsync(shortUrl, DateTimeOffset.UtcNow);
             return TypedResults.Redirect(shortUrl.OriginalUrl, permanent: false);
         }
         catch (ShortUrlBaseException ex)

@@ -17,6 +17,7 @@ builder.Services.AddOpenApiDocument(config =>
 });
 
 builder.Services.AddScoped<ShortUrlService>();
+builder.Services.AddScoped<ShortUrlClickService>();
 
 var app = builder.Build();
 // swagger

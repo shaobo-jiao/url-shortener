@@ -9,9 +9,16 @@ public class AppDbContext: DbContext
     }
 
     public DbSet<ShortUrl> ShortUrls { get; set; }
+    public DbSet<ShortUrlClick> ShortUrlClicks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<ShortUrl>()
+            .HasMany(e => e.Clicks)
+            .WithOne(e => e.ShortUrl)
+            .HasForeignKey(e => e.ShortUrlId)
+            .IsRequired();
     }
 }
