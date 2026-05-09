@@ -4,25 +4,32 @@ public class ShortUrlService(AppDbContext dbContext)
 {
     private AppDbContext _dbContext = dbContext;
 
-    public async Task<ShortUrl> CreateShortUrl(CreateShortUrlRequest request)
+    public async Task<ShortUrl> CreateShortUrlAsync(CreateShortUrlRequest request, CancellationToken cancellationToken)
     {
-        var shortUrl = new ShortUrl();
-        _dbContext.Add(shortUrl);
-        await _dbContext.SaveChangesAsync();
+        // use same transaction for the two saves.
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
+        var shortUrl = new ShortUrl
+        {
+            OriginalUrl = request.OriginalUrl
+        };
+        await _dbContext.ShortUrls.AddAsync(shortUrl);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // computes code from auto populated ID.
         shortUrl.Code = Base62Encoding.Encode(shortUrl.Id);
-        shortUrl.OriginalUrl = request.OriginalUrl;
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
-        await _dbContext.SaveChangesAsync();
+        await transaction.CommitAsync(cancellationToken);
         return shortUrl;
     }
 
-    public async Task<ShortUrl> GetShortUrlByCodeAsync(string code)
+    public async Task<ShortUrl> GetShortUrlByCodeAsync(string code, CancellationToken cancellationToken)
     {
         if (!Base62Encoding.TryDecode(code, out long id))
             throw new ShortUrlInvalidCodeException();
 
-        var shortUrl = await _dbContext.ShortUrls.FindAsync(id) ?? throw new ShortUrlNotFoundException();
+        var shortUrl = await _dbContext.ShortUrls.FindAsync(id, cancellationToken) ?? throw new ShortUrlNotFoundException();
         if (shortUrl.ExpiresAt < DateTime.UtcNow) throw new ShortUrlExpiredException();
         return shortUrl;
     }
