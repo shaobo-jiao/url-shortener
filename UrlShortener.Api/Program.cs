@@ -19,8 +19,21 @@ builder.Services.AddOpenApiDocument(config =>
 builder.Services.AddScoped<ShortUrlService>();
 builder.Services.AddSingleton<ShortUrlClickEventQueue>();
 builder.Services.AddHostedService<ShortUrlClickBackgroundService>();
+// CORS
+builder.Services.AddCors(options =>
+{
+    var corsOptions = builder.Configuration.GetSection("Cors").Get<CorsOptions>() ?? throw new InvalidOperationException("Failed to load CORS configuration.");
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(corsOptions.AllowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });  
+});
 
 var app = builder.Build();
+// CORS
+app.UseCors();
 // swagger
 if (app.Environment.IsDevelopment())
 {

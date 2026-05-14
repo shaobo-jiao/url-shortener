@@ -1,6 +1,6 @@
 ﻿namespace UrlShortener.Api;
 
-public record ShortUrlResponse(long Id, string ShortUrl, string OriginalUrl);
+public record ShortUrlResponse(long Id, string ShortUrl, string OriginalUrl, DateTimeOffset ExpiresAt);
 
 public static class ShortUrlResponseMapper
 {
@@ -13,6 +13,6 @@ public static class ShortUrlResponseMapper
             Port = httpRequest.Host.Port ?? (httpRequest.Scheme == "https" ? 443 : 80),
             Path = shortUrl.Code
         }.Uri.ToString();
-        return new ShortUrlResponse(shortUrl.Id, shortUrlPath, shortUrl.OriginalUrl);
+        return new ShortUrlResponse(shortUrl.Id, shortUrlPath, shortUrl.OriginalUrl, shortUrl.ExpiresAt);
     }
 }
