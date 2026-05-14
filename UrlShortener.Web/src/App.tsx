@@ -1,18 +1,20 @@
 import { useState } from "react"
-import ShortUrlForm from "./components/ShortUrlForm";
-import ShortUrlResult from "./components/ShortUrlResult";
+import type { ShortUrlResponse } from "./ShortUrlApi";
+import CreateShortUrlForm from "./components/CreateShortUrlForm";
+import ShortUrlResultCard from "./components/ShortUrlResultCard";
 
 const App = () => {
-  const [shortUrlResult, setShortUrlResult] = useState("");
+  const [shortUrlResponse, setShortUrlResponse] = useState(null as ShortUrlResponse | null);
 
-  const handleCreate = (shortUrl: string) => {
-    setShortUrlResult(shortUrl);
+  const handleCreate = (response: ShortUrlResponse) => {
+    // console.log("App received short URL result:", response);
+    setShortUrlResponse(response);
   }
 
   return (
     <>
-      <ShortUrlForm onCreate={handleCreate} />
-      <ShortUrlResult result={shortUrlResult} />
+      <CreateShortUrlForm onCreate={handleCreate} />
+      {shortUrlResponse && <ShortUrlResultCard result={shortUrlResponse} />}
     </>
   );
 }
