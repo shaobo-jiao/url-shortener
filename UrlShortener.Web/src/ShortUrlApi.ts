@@ -8,7 +8,7 @@ export interface ShortUrlResponse {
     id: string, // long Id from backend
     originalUrl: string,
     shortUrl: string,
-    expiresAt: string
+    expiresAt: Date
 }
 
 const API_BASE_URL = "http://localhost:5220/api/short-urls";
@@ -20,7 +20,7 @@ export async function createShortUrl(request: CreateShortUrlRequest): Promise<Sh
     //             id: "123",
     //             shortUrl: "http://short.url/abc123",
     //             originalUrl: "https://www.google.com",
-    //             expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString() // 3 days
+    //             expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // 3 days
     //         })
     //     }, 3000);
     // });
@@ -31,11 +31,12 @@ export async function createShortUrl(request: CreateShortUrlRequest): Promise<Sh
         },
         body: JSON.stringify(request)
     });
-    
+
     // backend should return OK only, otherwise there's error;
-    if (!response.ok) 
+    if (!response.ok)
         throw new Error(`Failed to create short URL: ${response.statusText}`);
-        
-    return await response.json();
+
+    const data = await response.json() as ShortUrlResponse;
+    return { ...data, expiresAt: new Date(data.expiresAt) };
 }
 
