@@ -40,46 +40,51 @@ const HomePage = () => {
   }
 
   return (
-    <Card className="w-xl">
-      <CardHeader>
-        <CardTitle>URL Shortener</CardTitle>
-        <CardDescription>Enter your URL to shorten.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit}>
-          <Field orientation="horizontal">
-            <Input id="original-url" type="url" placeholder="https://example.com" className="rounded-md" value={originalUrl} onChange={e => setOriginalUrl(e.target.value)} />
-            {!isCreating ? <Button type="submit" variant="outline" className="rounded-md" disabled={isCreating}>Create</Button>
-              : <Button variant="outline" disabled><Spinner data-icon="inline-start" /> Creating...</Button>}
-          </Field>
-        </form>
-      </CardContent>
+    <div className="flex flex-col items-center w-full max-w-5xl">
+      <h1 className="font-bold text-5xl my-8">Shorten. Manage. Share</h1>
+      <p className="font-medium text-md mb-8">An easy-to-use platform to shorten, organize, and manage your URLs</p>
+      <Card className="w-full max-w-2xl">
+        <CardHeader>
+          <CardTitle>Try It Out</CardTitle>
+          <CardDescription>Enter your URL to shorten.</CardDescription>
+        </CardHeader>
 
-      {response &&
-        <CardFooter>
-          <div className="flex flex-col w-full items-start gap-2">
-            <h3 className="font-medium flex items-center gap-1"><CircleCheck className="size-4"/> Successful!</h3>
-            <div className="flex flex-row w-full items-center gap-2">
-              <a href={response.shortUrl} target="_blank" className="hover:underline flex-1 ">{response.shortUrl}</a>
-              <Button type="button" variant="outline" size="icon" className="ml-auto" onClick={handleCopy}>
-                {copied ? <CopyCheck /> : <Copy />}
-              </Button>
+        <CardContent>
+          <form onSubmit={handleSubmit}>
+            <Field orientation="horizontal">
+              <Input id="original-url" type="url" placeholder="https://example.com" className="rounded-md" value={originalUrl} onChange={e => setOriginalUrl(e.target.value)} />
+              {!isCreating ? <Button type="submit" variant="outline" className="rounded-md" disabled={isCreating}>Shorten</Button>
+                : <Button variant="outline" disabled><Spinner data-icon="inline-start" /> Shortening...</Button>}
+            </Field>
+          </form>
+        </CardContent>
+
+        {response &&
+          <CardFooter>
+            <div className="flex flex-col w-full items-start gap-2">
+              <h3 className="font-medium flex items-center gap-1"><CircleCheck className="size-4" /> Successful!</h3>
+              <div className="flex flex-row w-full items-center gap-2">
+                <a href={response.shortUrl} target="_blank" className="hover:underline flex-1 ">{response.shortUrl}</a>
+                <Button type="button" variant="outline" size="icon" className="ml-auto" onClick={handleCopy}>
+                  {copied ? <CopyCheck /> : <Copy />}
+                </Button>
+              </div>
+              <Separator />
+              <p className="text-muted-foreground">The link will expire at {response.expiresAt.toLocaleString()}</p>
             </div>
-            <Separator />
-            <p className="text-muted-foreground">The link will expire at {response.expiresAt.toLocaleString()}</p>
-          </div>
-        </CardFooter>
-      }
+          </CardFooter>
+        }
 
-      {hasError &&
-        <CardFooter>
-          <div className="flex flex-col w-full items-start gap-2">
-            <h3 className="font-medium flex items-center gap-1"><CircleX className="size-4" /> Oops, something went wrong.</h3>
-            <p className="text-muted-foreground">Please try again later. If the issue persists, please contact the website owner.</p>
-          </div>
-        </CardFooter>
-      }
-    </Card>
+        {hasError &&
+          <CardFooter>
+            <div className="flex flex-col w-full items-start gap-2">
+              <h3 className="font-medium flex items-center gap-1"><CircleX className="size-4" /> Oops, something went wrong.</h3>
+              <p className="text-muted-foreground">Please try again later. If the issue persists, please contact the website owner.</p>
+            </div>
+          </CardFooter>
+        }
+      </Card>
+    </div>
   )
 }
 

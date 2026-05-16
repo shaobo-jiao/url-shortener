@@ -11,12 +11,12 @@ const Header = () => {
           <NavigationMenuList>
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
-                <a href="#" className="font-medium">Home</a>
+                <a href="/" className="font-medium">Home</a>
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
-                <a href="#" className="font-medium hover:">URLs</a>
+                <a href="/urls" className="font-medium hover:">URLs</a>
               </NavigationMenuLink>
             </NavigationMenuItem>
 
